@@ -15,42 +15,110 @@ class FirestoreService {
     try {
       let serviceAccount: any = null;
 
-      // 1. Tenta carregar pela Variável de Ambiente (PRODUÇÃO NO RENDER)
       if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
         console.log("🔥 Usando Firebase via ENV JSON (produção)");
-      } 
-      // 2. Tenta carregar pelo arquivo físico (DESENVOLVIMENTO LOCAL)
-      else if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {
+      } else if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {
         serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, "utf-8"));
         console.log("🔥 Usando Firebase via arquivo local");
-      } 
-      // 3. Falha se nenhum dos dois existir
-      else {
-        throw new Error("Credenciais do Firebase não encontradas no ambiente ou no disco.");
+      } else {
+        throw new Error("Credenciais não encontradas. Configure FIREBASE_SERVICE_ACCOUNT ou o arquivo local fallback.");
       }
 
-      // Inicializa o SDK explicitamente com as credenciais montadas
       if (!admin.apps.length) {
         admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+          credential: admin.credential.cert(serviceAccount)
         });
       }
-
+      
       const db = admin.firestore();
       db.settings({ ignoreUndefinedProperties: true });
-
       this.db = db;
       this.isConnected = true;
-
-      console.log("🔥 Firestore conectado com sucesso via credenciais validadas");
-
+      
+      console.log("🔥 Firestore conectado com sucesso via credenciais validadas.");
     } catch (err: any) {
       console.error("🚨 ERRO CRÍTICO AO CONECTAR FIRESTORE:", err.message);
       this.isConnected = false;
+      // Derruba a aplicação imediatamente se o banco falhar (Evita servidor "zumbi" e erros 500 na interface)
+      process.exit(1); 
+    }
+  }
+
+  public saveUser(user: User) {
+    if (!this.isConnected || !this.db) return;
+    this.db.collection("users").doc(user.id).set(user, { merge: true }).catch(console.error);
+  }
+
+  public saveRoom(room: Room) {
+    if (!this.isConnected || !this.db) return;
+    this.db.collection("rooms").doc(room.id).set(room, { merge: true }).catch(console.error);
+  }
+
+  public deleteRoom(roomId: string) {
+    if (!this.isConnected || !this.db) return;
+    this.db.collection("rooms").doc(roomId).delete().catch(console.error);
+  }
+
+  public saveMessage(message: Message) {
+    if (!this.isConnected || !this.db) return;
+    this.db.collection("messages").doc(message.id).set(message).catch(console.error);
+  }
+
+  public saveBan(ban: Ban) {
+    if (!this.isConnected || !this.db) return;
+    this.db.collection("bans").doc(ban.id).set(ban).catch(console.error);
+  }
+
+  public async deleteBan(uuid?: string, ip?: string) {
+    if (!this.isConnected || !this.db) return;
+    try {
+      const bansRef = this.db.collection("bans");
+      let snapshot;
+      if (uuid) snapshot = await bansRef.where("uuid", "==", uuid).get();
+      else if (ip) snapshot = await bansRef.where("ip", "==", ip).get();
       
-      // Derruba a aplicação imediatamente se o banco falhar (Evita servidor "zumbi")
-      process.exit(1);
+      if (snapshot && !snapshot.empty) {
+        const batch = this.db.batch();
+        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  public saveConfig(key: string, data: any) {
+    if (!this.isConnected || !this.db) return;
+    this.db.collection("config").doc(key).set(data, { merge: true }).catch(console.error);
+  }
+
+  public async getInitialData() {
+    if (!this.isConnected || !this.db) return null;
+    try {
+      const [usersSnap, roomsSnap, bansSnap, configSnap] = await Promise.all([
+        this.db.collection("users").get(),
+        this.db.collection("rooms").get(),
+        this.db.collection("bans").get(),
+        this.db.collection("config").get()
+      ]);
+
+      const data = {
+        users: {} as Record<string, User>,
+        rooms: {} as Record<string, Room>,
+        bans: [] as Ban[],
+        config: {} as any
+      };
+
+      usersSnap.docs.forEach(doc => { data.users[doc.id] = doc.data() as User; });
+      roomsSnap.docs.forEach(doc => { data.rooms[doc.id] = doc.data() as Room; });
+      bansSnap.docs.forEach(doc => { data.bans.push(doc.data() as Ban); });
+      configSnap.docs.forEach(doc => { data.config[doc.id] = doc.data(); });
+
+      return data;
+    } catch (err) {
+      console.error("Erro ao carregar dados do Firestore:", err);
+      return null;
     }
   }
 }
