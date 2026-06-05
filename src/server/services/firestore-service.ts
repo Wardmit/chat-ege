@@ -11,6 +11,9 @@ class FirestoreService {
 
   constructor() {
 
+  console.log("🔥 FIREBASE ENV EXISTS:", !!process.env.FIREBASE_SERVICE_ACCOUNT);
+  console.log("🔥 FIREBASE ENV LENGTH:", process.env.FIREBASE_SERVICE_ACCOUNT?.length);
+
   console.log(
     "ENV FIREBASE RAW:",
     process.env.FIREBASE_SERVICE_ACCOUNT?.slice(0, 80)
