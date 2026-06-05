@@ -24,7 +24,9 @@ class FirestoreService {
 
         serviceAccount = {
           ...raw,
-          private_key: raw.private_key.replace(/\\n/g, "\n"),
+          private_key: raw.private_key
+  .replace(/\\\\n/g, "\n")
+  .replace(/\\n/g, "\n"),
         };
 
         console.log("🔥 Usando Firebase via ENV (produção)");
