@@ -8,13 +8,15 @@ export const ENV = {
 const isProd = ENV.IS_PRODUCTION;
 
 // Variáveis centrais (Evite usar trailing slashes "/")
-export const API_URL = isProd
-  ? "https://chat-ege.onrender.com"
-  : "http://localhost:3000";
+const envApiUrl = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_API_URL : undefined;
 
-export const SOCKET_URL = isProd
+export const API_URL = envApiUrl || (isProd
   ? "https://chat-ege.onrender.com"
-  : "http://localhost:3000";
+  : "http://localhost:3000");
+
+export const SOCKET_URL = envApiUrl || (isProd
+  ? "https://chat-ege.onrender.com"
+  : "http://localhost:3000");
 
 export const APP_URL = isProd
   ? "https://chat-ege.web.app"

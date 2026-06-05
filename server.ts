@@ -33,7 +33,7 @@ app.use(
 );
 
 // Configuração de CORS Estrita para Produção e Local
-const allowedOrigins = ["https://chat-ege.web.app", "http://localhost:5173", "http://localhost:3000"];
+const allowedOrigins = ["https://chat-ege.web.app", "https://chatege-a5982.web.app", "http://localhost:5173", "http://localhost:3000"];
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {

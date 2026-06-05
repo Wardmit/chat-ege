@@ -413,7 +413,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!token || !editingRoom) return;
 
     try {
-      const res = await fetch("/api/admin/rooms/update", {
+      const res = await apiFetch("/api/admin/rooms/update", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
