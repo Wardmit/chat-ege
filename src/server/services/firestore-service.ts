@@ -24,9 +24,16 @@ class FirestoreService {
         const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, "utf-8"));
         
         if (!admin.apps.length) {
-          admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
-          });
+          const raw = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!);
+
+const serviceAccount = {
+  ...raw,
+  private_key: raw.private_key.replace(/\\n/g, "\n"),
+};
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
         }
         
         const db = admin.firestore();
