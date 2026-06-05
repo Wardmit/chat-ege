@@ -5,6 +5,8 @@ import {
   Users, CheckCircle, TrendingUp, RefreshCw, Layers, Edit2, ShieldCheck, EyeOff, FileSpreadsheet,
   Link as LinkIcon, Copy, Filter, Search, ListPlus, Activity
 } from "lucide-react";
+import { apiFetch } from "../api";
+import { getAppUrl } from "../config/env";
 
 interface AdminPanelProps {
   token: string | null;
@@ -114,7 +116,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     try {
       const headers = { Authorization: `Bearer ${token}` };
 
-      const resMetrics = await fetch("/api/admin/dashboard", { headers });
+      const resMetrics = await apiFetch("/api/admin/dashboard", { headers });
       const metricsData = await resMetrics.json();
       
       setMetrics((prev) => {
@@ -124,41 +126,41 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
         return metricsData;
       });
 
-      const resReported = await fetch(`/api/admin/messages/reported?sortBy=${reportedSortBy}`, { headers });
+      const resReported = await apiFetch(`/api/admin/messages/reported?sortBy=${reportedSortBy}`, { headers });
       const reportedData = await resReported.json();
       setReportedMessages(reportedData);
 
-      const resUsers = await fetch("/api/admin/users", { headers });
+      const resUsers = await apiFetch("/api/admin/users", { headers });
       const usersData = await resUsers.json();
       setUsersList(usersData);
 
-      const resRooms = await fetch("/api/rooms");
+      const resRooms = await apiFetch("/api/rooms");
       const roomsData = await resRooms.json();
       setRoomsList(roomsData);
 
-      const resLogs = await fetch("/api/admin/logs", { headers });
+      const resLogs = await apiFetch("/api/admin/logs", { headers });
       if (resLogs.ok) {
         const logsData = await resLogs.json();
         setAuditLogsList(logsData);
       }
 
-      const resConversions = await fetch("/api/admin/metrics/conversions", { headers });
+      const resConversions = await apiFetch("/api/admin/metrics/conversions", { headers });
       if (resConversions.ok) {
         setConversionMetrics(await resConversions.json());
       }
 
-      const resLinks = await fetch("/api/external-links");
+      const resLinks = await apiFetch("/api/external-links");
       if (resLinks.ok) {
         setExternalLinks(await resLinks.json());
       }
 
-      const resPw = await fetch("/api/admin/prohibited-words", { headers });
+      const resPw = await apiFetch("/api/admin/prohibited-words", { headers });
       if (resPw.ok) {
         setProhibitedWords(await resPw.json());
       }
 
       if (role === "owner") {
-        const resStaff = await fetch("/api/admin/staff", { headers });
+        const resStaff = await apiFetch("/api/admin/staff", { headers });
         if (resStaff.ok) {
           setStaffList(await resStaff.json());
         }
@@ -190,7 +192,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
   const handleDeleteMessage = async (messageId: string) => {
     if (!token) return;
     try {
-      const res = await fetch("/api/admin/message/delete", {
+      const res = await apiFetch("/api/admin/message/delete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -213,7 +215,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
   const handleIgnoreReport = async (messageId: string) => {
     if (!token) return;
     try {
-      const res = await fetch("/api/admin/message/ignore-report", {
+      const res = await apiFetch("/api/admin/message/ignore-report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -237,7 +239,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!token) return;
     const targetStatus = currentStatus === "muted" ? "active" : "muted";
     try {
-      const res = await fetch("/api/admin/user/mute", {
+      const res = await apiFetch("/api/admin/user/mute", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -263,7 +265,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!confirmBan) return;
 
     try {
-      const res = await fetch("/api/admin/user/ban", {
+      const res = await apiFetch("/api/admin/user/ban", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -286,7 +288,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
   const handleUnbanUser = async (userId: string) => {
     if (!token) return;
     try {
-      const res = await fetch("/api/admin/user/unban", {
+      const res = await apiFetch("/api/admin/user/unban", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -313,7 +315,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!confirmPromote) return;
 
     try {
-      const res = await fetch("/api/admin/user/promote", {
+      const res = await apiFetch("/api/admin/user/promote", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -339,7 +341,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!confirmDemote) return;
 
     try {
-      const res = await fetch("/api/admin/user/demote", {
+      const res = await apiFetch("/api/admin/user/demote", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -363,7 +365,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!token || !roomId) return;
     setLoadingMetrics(true);
     try {
-      const res = await fetch(`/api/admin/room-access/${roomId}`, {
+      const res = await apiFetch(`/api/admin/room-access/${roomId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -383,7 +385,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!token) return;
     setLoadingTopRooms(true);
     try {
-      const res = await fetch("/api/admin/top-rooms-today?limit=10", {
+      const res = await apiFetch("/api/admin/top-rooms-today?limit=10", {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -412,6 +414,11 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
 
     try {
       const res = await fetch("/api/admin/rooms/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           roomId: editingRoom.id,
           name: roomName,
@@ -442,7 +449,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!token) return;
 
     try {
-      const res = await fetch("/api/admin/rooms/create", {
+      const res = await apiFetch("/api/admin/rooms/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -518,7 +525,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     try {
       console.log("[ADMIN] Enviando links externos:", externalLinks);
 
-      const res = await fetch("/api/admin/external-links", {
+      const res = await apiFetch("/api/admin/external-links", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json", 
@@ -567,7 +574,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     try {
       console.log("[ADMIN] Enviando palavra:", trimmedWord, "severidade:", newProhibitedSeverity, "token (primeiros 20 chars):", token.substring(0, 20) + "...");
 
-      const res = await fetch("/api/admin/prohibited-words", {
+      const res = await apiFetch("/api/admin/prohibited-words", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -607,7 +614,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
   const handleRemoveProhibitedWord = async (word: string) => {
     if (!token) return;
     try {
-      const res = await fetch("/api/admin/prohibited-words", {
+      const res = await apiFetch("/api/admin/prohibited-words", {
         method: "DELETE",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ word })
@@ -634,7 +641,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     }
 
     try {
-      const res = await fetch("/api/admin/staff/create", {
+      const res = await apiFetch("/api/admin/staff/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -663,7 +670,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch("/api/admin/staff/delete", {
+      const res = await apiFetch("/api/admin/staff/delete", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -724,7 +731,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
   const handleGenericAction = async (endpoint: string, bodyData: any, successMsg: string) => {
     if (!token) return;
     try {
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(bodyData)
@@ -801,7 +808,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
 
   const copyShareLink = () => {
     if (!shareLinkRoom) return;
-    const link = `${window.location.origin}/chat?room=${encodeURIComponent(shareLinkRoom.name)}`;
+    const link = `${getAppUrl()}/chat?room=${encodeURIComponent(shareLinkRoom.name)}`;
     navigator.clipboard.writeText(link).then(() => {
       showStatus("Link copiado com sucesso!");
     }).catch(() => {
@@ -2276,7 +2283,7 @@ export default function AdminPanel({ token, role, onLogoutAdmin }: AdminPanelPro
               <input 
                 type="text" 
                 readOnly 
-                value={`${window.location.origin}/chat?room=${encodeURIComponent(shareLinkRoom.name)}`}
+                value={`${getAppUrl()}/chat?room=${encodeURIComponent(shareLinkRoom.name)}`}
                 className="w-full bg-transparent text-xs font-mono text-[#4e4639] focus:outline-none overflow-hidden" 
               />
               <button 

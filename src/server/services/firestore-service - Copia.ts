@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+import * as admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
 import { User, Room, Message, Ban } from "../../types.ts";
@@ -10,17 +10,15 @@ class FirestoreService {
   public isConnected: boolean = false;
 
   constructor() {
-    console.log("🔥 Verificando credenciais do Firebase...");
-
     try {
-      let serviceAccount: any = null;
+      let serviceAccount;
 
       if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-        console.log("🔥 Usando Firebase via ENV JSON (produção)");
+        console.log("🔥 Firestore conectado com sucesso usando Variável de Ambiente (ENV).");
       } else if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {
         serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, "utf-8"));
-        console.log("🔥 Usando Firebase via arquivo local");
+        console.log("🔥 Firestore conectado com sucesso usando Arquivo Local.");
       } else {
         throw new Error("Credenciais não encontradas. Configure FIREBASE_SERVICE_ACCOUNT ou o arquivo local fallback.");
       }
@@ -35,13 +33,9 @@ class FirestoreService {
       db.settings({ ignoreUndefinedProperties: true });
       this.db = db;
       this.isConnected = true;
-      
-      console.log("🔥 Firestore conectado com sucesso via credenciais validadas.");
     } catch (err: any) {
-      console.error("🚨 ERRO CRÍTICO AO CONECTAR FIRESTORE:", err.message);
+      console.warn("⚠️ Não foi possível conectar ao Firestore:", err.message);
       this.isConnected = false;
-      // Derruba a aplicação imediatamente se o banco falhar (Evita servidor "zumbi" e erros 500 na interface)
-      process.exit(1); 
     }
   }
 

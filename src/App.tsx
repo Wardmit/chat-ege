@@ -9,6 +9,8 @@ import {
   Compass, Shield, UserCog, Edit2, LogIn, ExternalLink, HelpCircle,
   GraduationCap, BookOpen, MessageSquare, Sparkles, Check, KeyRound
 } from "lucide-react";
+import { apiFetch } from "./api";
+import { getSocketUrl } from "./config/env";
 
 // Recupera ou cria UUID no localStorage e configura nos cookies
 function getOrCreateUserUuid(): string {
@@ -65,9 +67,9 @@ export default function App() {
 
     fetchUserProfile();
     fetchRoomsAndHandleDirectLink();
-    fetch("/api/external-links").then(res => res.json()).then(setExternalLinks).catch(console.error);
+    apiFetch("/api/external-links").then(res => res.json()).then(setExternalLinks).catch(console.error);
 
-    const socket = io(window.location.origin, {
+    const socket = io(getSocketUrl(), {
       transports: ["websocket", "polling"],
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -193,7 +195,7 @@ export default function App() {
 
   const fetchUserProfile = async () => {
     try {
-      const res = await fetch("/api/user/me", {
+      const res = await apiFetch("/api/user/me", {
         headers: { "x-user-id": userUuidRef.current }
       });
       if (res.ok) {
@@ -208,7 +210,7 @@ export default function App() {
 
   const fetchRoomsAndHandleDirectLink = async () => {
     try {
-      const res = await fetch("/api/rooms");
+      const res = await apiFetch("/api/rooms");
       if (res.ok) {
         const list = await res.json();
         setRooms(list);
@@ -275,7 +277,7 @@ export default function App() {
   // Entrar em Sala (API + WebSocket)
   const handleJoinRoom = async (roomId: string, password?: string) => {
     try {
-      const res = await fetch("/api/rooms/join", {
+      const res = await apiFetch("/api/rooms/join", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -319,7 +321,7 @@ export default function App() {
   const handleDeleteMessage = async (messageId: string) => {
     try {
       const token = adminToken || localStorage.getItem("ege_admin_token");
-      const res = await fetch("/api/admin/message/delete", {
+      const res = await apiFetch("/api/admin/message/delete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -379,7 +381,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("/api/user/update-name", {
+      const res = await apiFetch("/api/user/update-name", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -410,7 +412,7 @@ export default function App() {
     setAdminError("");
 
     try {
-      const res = await fetch("/api/admin/login", {
+      const res = await apiFetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: adminUser, password: adminPass })

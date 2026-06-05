@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cors from "cors";
 import { createServer as createViteServer } from "vite";
 
 import { db } from "./src/server/db.ts";
@@ -30,6 +31,19 @@ app.use(
     crossOriginEmbedderPolicy: false
   })
 );
+
+// Configuração de CORS Estrita para Produção e Local
+const allowedOrigins = ["https://chat-ege.web.app", "http://localhost:5173", "http://localhost:3000"];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Não permitido pelo CORS"));
+    }
+  },
+  credentials: true
+}));
 
 // Setup de middlewares globais básicos
 app.use(express.json());
@@ -722,9 +736,11 @@ app.get("/api/admin/metrics/conversions", authAdmin, async (req, res) => {
 // ==========================================
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   },
+  transports: ["websocket", "polling"],
   pingTimeout: 30000,
   pingInterval: 15000
 });
@@ -753,7 +769,15 @@ async function startServer() {
   }
 
   server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Servidor EGE Chat Rooms rodando com sucesso em http://0.0.0.0:${PORT}`);
+    console.log("==================================================");
+    console.log("🚀 EGE Chat Rooms Backend - Status de Inicialização");
+    console.log("==================================================");
+    console.log(`🌍 Ambiente: ${process.env.NODE_ENV || "development"}`);
+    console.log(`🔗 Porta ativa: ${PORT}`);
+    console.log(`🔌 WebSockets (Socket.io): HABILITADO [websocket, polling]`);
+    console.log(`🛡️ CORS configurado para: ${allowedOrigins.join(", ")}`);
+    console.log("✅ Sistema aguardando conexões...");
+    console.log("==================================================");
   });
 }
 

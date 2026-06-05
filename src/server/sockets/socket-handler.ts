@@ -124,6 +124,16 @@ export function setupSocketHandlers(io: SocketIOServer) {
         io.emit("room_user_count", { roomId: activeRoomId, count: prevRoom ? prevRoom.current_users : 0 });
       }
 
+      if (activeRoomId === roomId) {
+        // Já está na sala, envia apenas o history
+        const assignedRoom = roomService.getRoom(roomId);
+        if (assignedRoom) {
+          const history = chatService.getMessagesForRoom(assignedRoom.id);
+          socket.emit("message_history", history);
+        }
+        return;
+      }
+
       activeRoomId = roomId;
       socket.join(roomId);
 

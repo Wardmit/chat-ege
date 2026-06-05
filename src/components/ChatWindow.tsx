@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Message, Room, User } from "../types";
 import { Send, ArrowLeft, Users, ThumbsUp, ThumbsDown, Flag, Smile, AlertCircle, VolumeX, ShieldAlert, Reply, X, ExternalLink } from "lucide-react";
+import { apiFetch } from "../api";
+import { getAppUrl } from "../config/env";
 
 interface ChatWindowProps {
   room: Room;
@@ -114,7 +116,7 @@ export default function ChatWindow({
     }
 
     // Disparar tracking fire-and-forget
-    fetch("/api/track-click", {
+    apiFetch("/api/track-click", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
