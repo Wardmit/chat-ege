@@ -10,7 +10,13 @@ class FirestoreService {
   public isConnected: boolean = false;
 
   constructor() {
-    try {
+
+  console.log(
+    "ENV FIREBASE RAW:",
+    process.env.FIREBASE_SERVICE_ACCOUNT?.slice(0, 80)
+  );
+
+  try {
       if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {
         const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, "utf-8"));
         
