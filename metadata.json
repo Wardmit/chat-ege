@@ -1,0 +1,8 @@
+{
+  "name": "EGE Chat Rooms",
+  "description": "A scalable real-time web chat system featuring multiple rooms, anonymous user identity, moderation tools, and an admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
