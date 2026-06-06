@@ -18,9 +18,11 @@ export const SOCKET_URL = envApiUrl || (isProd
   ? "https://chat-ege.onrender.com"
   : "http://localhost:3000");
 
-export const APP_URL = isProd
-  ? "https://chat-ege.web.app"
-  : "http://localhost:5173";
+const envAppUrl = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_FRONTEND_URL : undefined;
+
+export const APP_URL = envAppUrl || (typeof window !== 'undefined' && window.location 
+  ? window.location.origin 
+  : (isProd ? "https://chatege-a5982.web.app" : "http://localhost:5173"));
 
 // Helpers estritos
 export const getApiUrl = () => API_URL;
